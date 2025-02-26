@@ -16,6 +16,20 @@ class Program
             // Obtener todos los archivos PDF en la carpeta
             string[] pdfFiles = Directory.GetFiles(args[0], "*.pdf");
 
+            // Informar cuántos archivos se van a procesar
+            Console.WriteLine($"Se encontraron {pdfFiles.Length} archivos PDF en la carpeta {args[0]}.");
+            Console.Write("¿Desea continuar con la creación del nuevo archivo PDF? (s/n): ");
+            string respuesta = Console.ReadLine();
+
+            if (respuesta.ToLower() != "s")
+            {
+                Console.WriteLine("Operación cancelada por el usuario.");
+                return;
+            }
+
+            // Crear un nuevo documento PDF
+            PdfDocument outputDocument = new PdfDocument();
+
             // Recorrer todos los archivos PDF
             foreach (var filePath in pdfFiles)
             {
@@ -27,10 +41,8 @@ class Program
                         {
                             if (document.PageCount > 0)
                             {
-                                PdfDocument singlePageDocument = new PdfDocument();
-                                singlePageDocument.AddPage(document.Pages[0]);
-
-                                PrintDocument(singlePageDocument);
+                                // Agregar la primera página del documento actual al documento de salida
+                                outputDocument.AddPage(document.Pages[0]);
                             }
                         }
                     }
@@ -44,21 +56,20 @@ class Program
                     Console.WriteLine($"El archivo {filePath} no existe.");
                 }
             }
+
+            // Generar el nombre del archivo de salida basado en la fecha actual
+            string outputFileName = $"PrimeraPagina_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+            string outputFilePath = Path.Combine(args[0], outputFileName);
+
+            // Guardar el documento de salida
+            outputDocument.Save(outputFilePath);
+            Console.WriteLine($"El archivo PDF se ha guardado como {outputFilePath}.");
         }
         else
         {
             Console.WriteLine($"La carpeta {args[0]} no existe.");
         }
     }
-
-    static void PrintDocument(PdfDocument document)
-    {
-        string tempFilePath = Path.Combine(Path.GetTempPath(), "tempDocument.pdf");
-        document.Save(tempFilePath);
-
-        // Aquí puedes usar una herramienta externa para imprimir el archivo PDF
-        // Por ejemplo, puedes usar el comando de impresión de Windows:
-        System.Diagnostics.Process.Start("cmd.exe", $"/c start /min Acrobat.exe /t \"{tempFilePath}\"");
-    }
 }
+
 
